@@ -58,6 +58,13 @@ final class TemplateTests: XCTestCase {
         try XCTAssertEqual(parsed(), .call(.variable("foo"), arguments: [.variable("hello")]))
     }
     
+    func testDefinition() throws {
+        input = """
+        let foo = 42 in foo
+        """
+        try XCTAssertEqual(parsed(), .define(name: "foo", value: .literal(int: 42), in: .variable("foo")))
+    }
+    
     // MARK: Parse failures
     func testEmpty() throws {
         let input = """

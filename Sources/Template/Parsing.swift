@@ -70,9 +70,10 @@ extension Slice where Index == String.Index, Element == Character {
     }
     
     mutating func parseFunctionCall() throws -> AnnotatedExpression {
-        let start = position
         var result = try parseAtom()
         while remove(expecting: "(") {
+            let start = position
+            skipWS()
             var arguments: [AnnotatedExpression] = []
             while let f = first, f != ")" {
                 arguments.append(try parseExpression())

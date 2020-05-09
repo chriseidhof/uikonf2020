@@ -11,10 +11,13 @@ final class TemplateTests: XCTestCase {
         }
     }
     
+    override func tearDown() {
+        input = nil
+    }
     var input: String!
-    func parsed(file: StaticString = #file, line: UInt = #line) throws -> Expression {
+    func parsed(file: StaticString = #file, line: UInt = #line) throws -> SimpleExpression {
         do {
-            return try input.parse()
+            return try input.parse().simplify
         } catch {
             let e = error as! ParseError
             let lineRange = input!.lineRange(for: e.position..<e.position)
@@ -31,17 +34,17 @@ final class TemplateTests: XCTestCase {
     }
     
     func testInt() throws {
-    	let input = """
+    	input = """
         42
         """
-        try XCTAssertEqual(input.parse(), .literal(int: 42))
+        try XCTAssertEqual(parsed(), .literal(int: 42))
     }
     
     func testVariable() throws {
-        let input = """
+        input = """
         foo
         """
-        try XCTAssertEqual(input.parse(), .variable("foo"))
+        try XCTAssertEqual(parsed(), .variable("foo"))
     }
     
     func testFunction() throws {

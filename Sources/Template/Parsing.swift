@@ -44,11 +44,12 @@ extension Slice where Index == String.Index, Element == Character {
         ParseError(position: position, reason: reason)
     }
     
-    mutating func parseExpression() throws -> Expression {
+    mutating func parseExpression() throws -> AnnotatedExpression {
         return try parseDefinition()
     }
     
-    mutating func parseDefinition() throws -> Expression {
+    mutating func parseDefinition() throws -> AnnotatedExpression {
+        let start = position
         guard self.parse(keyword: "let") else { return try parseFunctionCall() }
         skipWS()
         let name = try parseIdentifier()
@@ -64,13 +65,15 @@ extension Slice where Index == String.Index, Element == Character {
         }
         skipWS()
         let body = try parseExpression()
-        return .define(name: name, value: value, in: body)
+        let end = position
+        return AnnotatedExpression(SourceRange(startIndex: start, endIndex: end), .define(name: name, value: value, in: body))
     }
     
-    mutating func parseFunctionCall() throws -> Expression {
+    mutating func parseFunctionCall() throws -> AnnotatedExpression {
+        let start = position
         var result = try parseAtom()
         while remove(expecting: "(") {
-            var arguments: [Expression] = []
+            var arguments: [AnnotatedExpression] = []
             while let f = first, f != ")" {
                 arguments.append(try parseExpression())
                 skipWS()
@@ -83,18 +86,28 @@ extension Slice where Index == String.Index, Element == Character {
             guard remove(expecting: ")") else {
                 throw err(.expected(")"))
             }
-            result = .call(result, arguments: arguments)
+            result = AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .call(result, arguments: arguments))
         }
         return result
     }
     
-    mutating func parseAtom() throws -> Expression {
+    mutating func annotate<A>(_ f: (inout Self) throws -> A) throws -> (SourceRange, A) {
+        let start = position
+        let result = try f(&self)
+        let end = position
+        return (SourceRange(startIndex: start, endIndex: end), result)
+    }
+    
+    mutating func parseAtom() throws -> AnnotatedExpression {
         if let p = first {
             if p.isDecimalDigit {
-                return .literal(int: parseInt())
+                let (range, int) = try annotate { $0.parseInt() }
+                return AnnotatedExpression(range, .literal(int: int))
             } else if p.isIdentifierStart {
-                return try .variable(parseIdentifier())
+                let (range, name) = try annotate { try $0.parseIdentifier() }
+                return AnnotatedExpression(range, .variable(name))
             } else if p == "{" {
+                let start = position
                 removeFirst()
                 skipWS()
                 var parameters: [String] = []
@@ -117,7 +130,8 @@ extension Slice where Index == String.Index, Element == Character {
                 guard remove(expecting: "}") else {
                     throw err(Reason.expected("}"))
                 }
-                return .function(parameters: parameters, body: body)
+                let end = position
+                return AnnotatedExpression(SourceRange(startIndex: start, endIndex: end), .function(parameters: parameters, body: body))
             } else {
                 throw err(.expectedAtom)
             }
@@ -204,7 +218,7 @@ public enum Reason: Hashable {
 }
 
 extension String {
-    public func parse() throws -> Expression {
+    public func parse() throws -> AnnotatedExpression {
         var context = Context<String>(self)
         let result = try context.parseExpression()
         guard context.isEmpty else {

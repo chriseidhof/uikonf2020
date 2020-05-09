@@ -10,10 +10,10 @@ import Foundation
 public enum Value: Hashable {
     case string(String)
     case int(Int)
-    case function(parameters: [String], body: Expression)
+    case function(parameters: [String], body: AnnotatedExpression)
 }
 
-extension Expression {
+extension AnnotatedExpression {
     public func run() throws -> Value {
         try EvaluationContext().evaluate(self)
     }
@@ -31,8 +31,8 @@ public struct EvaluationError: Error, Hashable {
 struct EvaluationContext {
     var context: [String: Value] = [:]
     
-    func evaluate(_ expression: Expression) throws -> Value {
-        switch expression {
+    func evaluate(_ expression: AnnotatedExpression) throws -> Value {
+        switch expression.expression {
         case .variable(let v):
             guard let value = context[v] else {
                 throw EvaluationError(reason: .variableMissing(name: v))

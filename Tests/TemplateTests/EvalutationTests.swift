@@ -3,7 +3,7 @@ import Template
 
 final class EvaluationTests: XCTestCase {
     var input: String!
-    func parsed(file: StaticString = #file, line: UInt = #line) -> Expression {
+    func parsed(file: StaticString = #file, line: UInt = #line) -> AnnotatedExpression {
         do {
             return try input.parse()
         } catch {

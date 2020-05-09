@@ -25,6 +25,7 @@ public struct EvaluationError: Error, Hashable {
         case expectedFunction(got: Value)
         case wrongNumberOfArguments(expected: Int, got: Int)
     }
+    public var position: SourceRange
     public var reason: Reason
 }
 
@@ -32,10 +33,11 @@ struct EvaluationContext {
     var context: [String: Value] = [:]
     
     func evaluate(_ expression: AnnotatedExpression) throws -> Value {
+        
         switch expression.expression {
         case .variable(let v):
             guard let value = context[v] else {
-                throw EvaluationError(reason: .variableMissing(name: v))
+                throw EvaluationError(position: expression.range, reason: .variableMissing(name: v))
             }
             return value
         case .literal(int: let value):
@@ -45,10 +47,10 @@ struct EvaluationContext {
         case let .call(lhs, arguments: arguments):
             let l = try evaluate(lhs)
             guard case let .function(parameters, body) = l else {
-                throw EvaluationError(reason: .expectedFunction(got: l))
+                throw EvaluationError(position: expression.range, reason: .expectedFunction(got: l))
             }
             guard parameters.count == arguments.count else {
-                throw EvaluationError(reason: .wrongNumberOfArguments(expected: parameters.count, got: arguments.count))
+                throw EvaluationError(position: expression.range, reason: .wrongNumberOfArguments(expected: parameters.count, got: arguments.count))
             }
             let args = try arguments.map(self.evaluate(_:))
             var nestedContext = self

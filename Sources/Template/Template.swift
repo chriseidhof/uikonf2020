@@ -13,6 +13,7 @@ indirect public enum Expression<R> {
     case function(parameters: [String], body: R)
     case call(R, arguments: [R])
     case define(name: String, value: R, in: R)
+    case tag(name: String, attributes: [String:R], body: [R])
 }
 
 extension Expression: Equatable where R: Equatable { }
@@ -58,6 +59,10 @@ public extension SimpleExpression {
     static func define(name: String, value: R, in body: R) -> Self {
         return Self(.define(name: name, value: value, in: body))
     }
+    
+    static func tag(name: String, attributes: [String:Self] = [:], body: [Self] = []) -> Self {
+        return Self(.tag(name: name, attributes: attributes, body: body))
+    }
 }
 
 extension Expression {
@@ -73,6 +78,8 @@ extension Expression {
             return .call(transform(f), arguments: arguments.map(transform))
         case .define(name: let name, value: let value, in: let body):
             return .define(name: name, value: transform(value), in: transform(body))
+        case .tag(name: let name, attributes: let attributes, body: let body):
+            return .tag(name: name, attributes: attributes.mapValues(transform), body: body.map(transform))
         }
     }
 }

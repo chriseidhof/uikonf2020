@@ -133,6 +133,8 @@ extension Slice where Index == String.Index, Element == Character {
                 }
                 let end = position
                 return AnnotatedExpression(SourceRange(startIndex: start, endIndex: end), .function(parameters: parameters, body: body))
+            } else if p == "<" {
+               return try parseTag()
             } else {
                 throw err(.expectedAtom)
             }
@@ -142,6 +144,33 @@ extension Slice where Index == String.Index, Element == Character {
     
     mutating func parseInt() -> Int {
         return Int(String(remove(while: { $0.isDecimalDigit })))!
+    }
+    
+    mutating func parseTag() throws -> AnnotatedExpression {
+        let start = position
+        if remove(expecting: "<") {
+            skipWS()
+            let name = try parseIdentifier()
+            guard remove(expecting: ">") else {
+                throw err(Reason.expected(">"))
+            }
+            skipWS()
+            var body: [AnnotatedExpression] = []
+            while !remove(expecting: "</\(name)>") {
+                try body.append(parseTag())
+            }
+            return AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .tag(name: name, attributes: [:], body: body))
+        } else if remove(expecting: "{") {
+            skipWS()
+            let result = try parseExpression()
+            skipWS()
+            guard remove(expecting: "}") else {
+                throw err(Reason.expected("}"))
+            }
+            return result
+        } else {
+            throw err(Reason.expected("{ or <"))
+        }
     }
     
     mutating func parseIdentifier() throws -> String {

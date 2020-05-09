@@ -11,6 +11,7 @@ public enum Value: Hashable {
     case string(String)
     case int(Int)
     case function(parameters: [String], body: AnnotatedExpression)
+    case html(String)
 }
 
 extension AnnotatedExpression {
@@ -62,6 +63,8 @@ struct EvaluationContext {
             var nestedContext = self
             nestedContext.context[name] = try evaluate(value)
             return try nestedContext.evaluate(body)
+        case .tag(name: let name, attributes: let attributes, body: let body):
+            fatalError("TODO")
         }
     }
 }

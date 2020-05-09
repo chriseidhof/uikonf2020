@@ -25,6 +25,7 @@ public struct EvaluationError: Error, Hashable {
         case variableMissing(name: String)
         case expectedFunction(got: Value)
         case wrongNumberOfArguments(expected: Int, got: Int)
+        case typeError(String)
     }
     public var position: SourceRange
     public var reason: Reason
@@ -41,8 +42,10 @@ struct EvaluationContext {
                 throw EvaluationError(position: expression.range, reason: .variableMissing(name: v))
             }
             return value
-        case .literal(int: let value):
+        case .intLiteral(let value):
             return .int(value)
+        case let .stringLiteral(value):
+            return .string(value)
         case .function(parameters: let parameters, body: let body):
             return .function(parameters: parameters, body: body)
         case let .call(lhs, arguments: arguments):
@@ -63,8 +66,27 @@ struct EvaluationContext {
             var nestedContext = self
             nestedContext.context[name] = try evaluate(value)
             return try nestedContext.evaluate(body)
-        case .tag(name: let name, attributes: let attributes, body: let body):
-            fatalError("TODO")
+        case .tag(name: let name, body: let body):
+            var result = "<\(name)>"
+            for b in body {
+                let value = try evaluate(b)
+                switch value {
+                case let .html(str):
+                    result.append(str)
+                case let .string(str):
+                    result.append(str.htmlEscaped)
+                default:
+                    throw EvaluationError(position: b.range, reason: .typeError("Expected html or string, but got \(value)"))
+                }
+            }
+            result.append("</\(name)>")
+            return .html(result)
         }
+    }
+}
+
+extension String {
+    var htmlEscaped: String {
+        return replacingOccurrences(of: "<", with: "&lt;") // todo
     }
 }

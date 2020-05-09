@@ -37,7 +37,14 @@ final class TemplateTests: XCTestCase {
     	input = """
         42
         """
-        try XCTAssertEqual(parsed(), .literal(int: 42))
+        try XCTAssertEqual(parsed(), .intLiteral(42))
+    }
+    
+    func testString() throws {
+        input = """
+        "hello"
+        """
+        try XCTAssertEqual(parsed(), .stringLiteral("hello"))
     }
     
     func testVariable() throws {
@@ -65,7 +72,7 @@ final class TemplateTests: XCTestCase {
         input = """
         let foo = 42 in foo
         """
-        try XCTAssertEqual(parsed(), .define(name: "foo", value: .literal(int: 42), in: .variable("foo")))
+        try XCTAssertEqual(parsed(), .define(name: "foo", value: .intLiteral(42), in: .variable("foo")))
     }
     
     func testTag() throws {

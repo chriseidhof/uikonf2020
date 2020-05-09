@@ -103,10 +103,18 @@ extension Slice where Index == String.Index, Element == Character {
         if let p = first {
             if p.isDecimalDigit {
                 let (range, int) = try annotate { $0.parseInt() }
-                return AnnotatedExpression(range, .literal(int: int))
+                return AnnotatedExpression(range, .intLiteral(int))
             } else if p.isIdentifierStart {
                 let (range, name) = try annotate { try $0.parseIdentifier() }
                 return AnnotatedExpression(range, .variable(name))
+            } else if p == "\"" {
+                let start = position
+                removeFirst()
+                let value = remove(while: { $0 != "\"" }) // todo escaping
+                guard remove(expecting: "\"") else {
+                    throw err(Reason.expected("\""))
+                }
+                return AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .stringLiteral(String(value)))
             } else if p == "{" {
                 let start = position
                 removeFirst()
@@ -159,7 +167,7 @@ extension Slice where Index == String.Index, Element == Character {
             while !remove(expecting: "</\(name)>") {
                 try body.append(parseTag())
             }
-            return AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .tag(name: name, attributes: [:], body: body))
+            return AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .tag(name: name, body: body))
         } else if remove(expecting: "{") {
             skipWS()
             let result = try parseExpression()

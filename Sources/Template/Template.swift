@@ -9,11 +9,12 @@ import Foundation
 
 indirect public enum Expression<R> {
     case variable(String)
-    case literal(int: Int)
+    case intLiteral(Int)
+    case stringLiteral(String)
     case function(parameters: [String], body: R)
     case call(R, arguments: [R])
     case define(name: String, value: R, in: R)
-    case tag(name: String, attributes: [String:R], body: [R])
+    case tag(name: String, body: [R])
 }
 
 extension Expression: Equatable where R: Equatable { }
@@ -47,8 +48,11 @@ public extension SimpleExpression {
     static func variable(_ string: String) -> Self {
         return Self(.variable(string))
     }
-    static func literal(int: Int) -> Self {
-        return Self(.literal(int: int))
+    static func intLiteral(_ int: Int) -> Self {
+        return Self(.intLiteral(int))
+    }
+    static func stringLiteral(_ string: String) -> Self {
+        return Self(.stringLiteral(string))
     }
     static func function(parameters: [String], body: R) -> Self {
         return Self(.function(parameters: parameters, body: body))
@@ -61,7 +65,7 @@ public extension SimpleExpression {
     }
     
     static func tag(name: String, attributes: [String:Self] = [:], body: [Self] = []) -> Self {
-        return Self(.tag(name: name, attributes: attributes, body: body))
+        return Self(.tag(name: name, body: body))
     }
 }
 
@@ -70,16 +74,18 @@ extension Expression {
         switch self {
         case let .variable(x):
             return .variable(x)
-        case let .literal(int: int):
-            return .literal(int: int)
+        case let .intLiteral(int: int):
+            return .intLiteral(int)
+        case let .stringLiteral(str):
+            return .stringLiteral(str)
         case let .function(parameters: parameters, body: body):
             return Expression<B>.function(parameters: parameters, body: transform(body))
         case let .call(f, arguments: arguments):
             return .call(transform(f), arguments: arguments.map(transform))
         case .define(name: let name, value: let value, in: let body):
             return .define(name: name, value: transform(value), in: transform(body))
-        case .tag(name: let name, attributes: let attributes, body: let body):
-            return .tag(name: name, attributes: attributes.mapValues(transform), body: body.map(transform))
+        case .tag(name: let name, body: let body):
+            return .tag(name: name, body: body.map(transform))
         }
     }
 }

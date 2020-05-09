@@ -43,6 +43,14 @@ final class EvaluationTests: XCTestCase {
         """
         try XCTAssertEqual(evaluated(), .int(42))
     }
+    
+    func testTag() throws {
+        input = """
+        let t = { name in <title>{ name }</title> } in
+        <head>{ t("My < Title") }</head>
+        """
+        try XCTAssertEqual(evaluated(), .html("<head><title>My &lt; Title</title></head>"))
+    }
 //
 //    func testFunction() throws {
 //        input = """

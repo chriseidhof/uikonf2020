@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Chris Eidhof on 09.05.20.
 //
@@ -133,7 +133,7 @@ extension Substring {
                 let (range, name) = try annotate { try $0.parseIdentifier() }
                 return AnnotatedExpression(range, .variable(name))
             } else if p == "<" {
-               return try parseTag()
+                return try parseTag()
             } else {
                 throw err(.expectedAtom)
             }
@@ -203,7 +203,7 @@ extension Substring {
         return true
     }
     
-
+    
     mutating func parse(operator expected: String) -> Bool {
         var copy = self
         do {

@@ -23,23 +23,16 @@ func parse(_ input: String) throws -> AnnotatedExpression {
 
 func repl() {
     let ln = LineNoise()
-    
-
-    run(view: TreeView()
-        .frame(maxWidth: .infinity, maxHeight: .infinity))
-
     while true {
         var input: String = ""
         do {
             input = try ln.getLine(prompt: "> ")
             ln.addHistory(input)
             print("")
-//            if input.hasPrefix(":t ") {
-//                let remainder = input.dropFirst(3)
-//                let parsed = try String(remainder).parse()
-//                run(view: TreeView(tree: parsed.simplify.tree)
-//                    .frame(maxWidth: .infinity, maxHeight: .infinity))
-//            }
+            if input == "gui" {
+                run(view: TreeView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity))
+            }
             let parsed = try input.parse()
             let result = try parsed.run().0.get()
             print(result.pretty)

@@ -20,6 +20,15 @@ let package = Package(
         .target(
             name: "Template",
             dependencies: []),
+        .target(
+            name: "Step0Parsing",
+            dependencies: []),
+        .target(
+            name: "Step1Evaluation",
+            dependencies: []),
+        .target(
+            name: "Step2Annotation",
+            dependencies: []),
         .testTarget(
             name: "uikonf2020Tests",
             dependencies: ["uikonf2020"]),

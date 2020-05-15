@@ -162,7 +162,7 @@ extension Array where Element == Trace {
 struct TreeView: View {
 //    var tree: Tree
     @State var source = ""
-    @State var s = "let t = func(name){ <title>{ name }</title> } in <head>{ t(\"My < Title\") }</head>"
+    @State var s = ""
     @State var result: Result<AnnotatedExpression, Error>? = nil
     var tree: Tree<ExpressionNode>? {
         return try? result?.map { $0.tree(trace: traceForCurrentStep ?? [:]) }.get()

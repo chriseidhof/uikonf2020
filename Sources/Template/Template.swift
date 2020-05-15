@@ -13,7 +13,7 @@ indirect public enum Expression<R> {
     case stringLiteral(String)
     case function(parameters: [String], body: R)
     case call(R, arguments: [R])
-    case define(name: String, value: R, in: R)
+    case `let`(name: String, value: R, in: R)
     case tag(name: String, body: [R])
 }
 
@@ -31,13 +31,14 @@ public struct AnnotatedExpression: Equatable, Hashable {
         self.expression = expression
     }
     
+    public let id = UUID()
     public let range: SourceRange
     public let expression: Expression<AnnotatedExpression>
     
 }
 
 public struct SimpleExpression: Hashable, CustomStringConvertible {
-    let expression: Expression<SimpleExpression>
+    public let expression: Expression<SimpleExpression>
     public init(_ expression: Expression<SimpleExpression>) {
         self.expression = expression
     }
@@ -64,8 +65,8 @@ public extension SimpleExpression {
     static func call(_ f: R, arguments: [R]) -> Self {
         return Self(.call(f, arguments: arguments))
     }
-    static func define(name: String, value: R, in body: R) -> Self {
-        return Self(.define(name: name, value: value, in: body))
+    static func `let`(name: String, value: R, in body: R) -> Self {
+        return Self(.let(name: name, value: value, in: body))
     }
     
     static func tag(name: String, attributes: [String:Self] = [:], body: [Self] = []) -> Self {
@@ -86,8 +87,8 @@ extension Expression {
             return Expression<B>.function(parameters: parameters, body: transform(body))
         case let .call(f, arguments: arguments):
             return .call(transform(f), arguments: arguments.map(transform))
-        case .define(name: let name, value: let value, in: let body):
-            return .define(name: name, value: transform(value), in: transform(body))
+        case .let(name: let name, value: let value, in: let body):
+            return .let(name: name, value: transform(value), in: transform(body))
         case .tag(name: let name, body: let body):
             return .tag(name: name, body: body.map(transform))
         }

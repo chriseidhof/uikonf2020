@@ -64,7 +64,7 @@ extension Substring {
         skipWS()
         let body = try parseExpression()
         let end = position
-        return AnnotatedExpression(SourceRange(startIndex: start, endIndex: end), .define(name: name, value: value, in: body))
+        return AnnotatedExpression(SourceRange(startIndex: start, endIndex: end), .let(name: name, value: value, in: body))
     }
     
     mutating func parseFunctionCall() throws -> AnnotatedExpression {
@@ -133,6 +133,7 @@ extension Substring {
                     }
                     skipWS()
                 }
+                skipWS()
                 guard remove(prefix: "{") else { throw err(Reason.expected("{")) }
                 skipWS()
                 let body = try parseExpression()

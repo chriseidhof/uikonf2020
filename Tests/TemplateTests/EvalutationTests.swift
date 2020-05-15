@@ -27,7 +27,7 @@ final class EvaluationTests: XCTestCase {
     
     func evaluated(file: StaticString = #file, line: UInt = #line) throws -> Value {
         let p = parsed(file: file, line: line)
-        return try p.run()
+        return try p.run().0.get()
     }
     
     func testInt() throws {

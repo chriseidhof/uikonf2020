@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "uikonf2020",
+    platforms: [
+        .macOS(.v10_15)
+    ],
     dependencies: [
         .package(name: "LineNoise", url: "https://github.com/andybest/linenoise-swift", from: "0.0.3"),
     ],

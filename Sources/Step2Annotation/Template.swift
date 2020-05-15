@@ -37,6 +37,8 @@ public struct AnnotatedExpression: Equatable, Hashable {
     
 }
 
+// Useful for testing
+
 public struct SimpleExpression: Hashable, CustomStringConvertible {
     public let expression: Expression<SimpleExpression>
     public init(_ expression: Expression<SimpleExpression>) {

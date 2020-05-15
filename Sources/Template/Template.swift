@@ -25,7 +25,7 @@ public struct SourceRange: Hashable {
     public var endIndex: String.Index
 }
 
-public struct AnnotatedExpression: Equatable, Hashable {
+public struct AnnotatedExpression: Equatable, Hashable, Identifiable {
     public init(_ range: SourceRange, _ expression: Expression<AnnotatedExpression>) {
         self.range = range
         self.expression = expression

@@ -7,9 +7,7 @@
 
 import Foundation
 
-typealias Context<C> = Slice<C> where C: Collection
-
-extension Slice {
+extension Substring {
     var position: Index { startIndex }
     mutating func remove(while cond: (Element) -> Bool) -> SubSequence {
         var p = position
@@ -22,16 +20,16 @@ extension Slice {
     }
 }
 
-extension Slice where Element: Comparable {
-    mutating func remove<S>(expecting: S) -> Bool where S: Collection, S.Element == Element {
-        guard starts(with: expecting) else { return false }
-        removeFirst(expecting.count)
+extension Substring {
+    mutating func remove<S>(prefix: S) -> Bool where S: Collection, S.Element == Element {
+        guard starts(with: prefix) else { return false }
+        removeFirst(prefix.count)
         return true
     }
 
 }
 
-extension Slice where Index == String.Index, Element == Character {
+extension Substring {
     var remainder: String {
         return String(self)
     }
@@ -71,20 +69,20 @@ extension Slice where Index == String.Index, Element == Character {
     
     mutating func parseFunctionCall() throws -> AnnotatedExpression {
         var result = try parseAtom()
-        while remove(expecting: "(") {
+        while remove(prefix: "(") {
             let start = position
             skipWS()
             var arguments: [AnnotatedExpression] = []
             while let f = first, f != ")" {
                 arguments.append(try parseExpression())
                 skipWS()
-                if !remove(expecting: ",") {
+                if !remove(prefix: ",") {
                     break
                 }
                 skipWS()
             }
             
-            guard remove(expecting: ")") else {
+            guard remove(prefix: ")") else {
                 throw err(.expected(")"))
             }
             result = AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .call(result, arguments: arguments))
@@ -99,48 +97,54 @@ extension Slice where Index == String.Index, Element == Character {
         return (SourceRange(startIndex: start, endIndex: end), result)
     }
     
+    mutating func remove(keyword: String) -> Bool {
+        guard hasPrefix(keyword) else { return false }
+        let index = self.index(startIndex, offsetBy: keyword.count)
+        guard index < endIndex, !self[index].isIdentifier else { return false }
+        _ = remove(prefix: keyword)
+        return true
+    }
+    
     mutating func parseAtom() throws -> AnnotatedExpression {
+        let atomStart = position
+
         if let p = first {
             if p.isDecimalDigit {
                 let (range, int) = try annotate { $0.parseInt() }
                 return AnnotatedExpression(range, .intLiteral(int))
-            } else if p.isIdentifierStart {
-                let (range, name) = try annotate { try $0.parseIdentifier() }
-                return AnnotatedExpression(range, .variable(name))
             } else if p == "\"" {
                 let start = position
                 removeFirst()
                 let value = remove(while: { $0 != "\"" }) // todo escaping
-                guard remove(expecting: "\"") else {
+                guard remove(prefix: "\"") else {
                     throw err(Reason.expected("\""))
                 }
                 return AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .stringLiteral(String(value)))
-            } else if p == "{" {
-                let start = position
-                removeFirst()
+            } else if remove(keyword: "func") {
                 skipWS()
                 var parameters: [String] = []
-                
+                guard remove(prefix: "(") else { throw err(.expected("(")) }
                 // Parse 0 or more identifiers separated by commas
-                while true {
+                while !remove(prefix: ")") {
                     let identifier = try parseIdentifier()
                     parameters.append(identifier)
-                    guard remove(expecting: ",") else { break }
+                    guard remove(prefix: ",") || first == ")" else {
+                        throw err(.expected(", or )"))
+                    }
                     skipWS()
                 }
-                
-                skipWS()
-                guard try parseIdentifier() == "in" else {
-                    throw err(.expectedKeyword("in"))
-                }
+                guard remove(prefix: "{") else { throw err(Reason.expected("{")) }
                 skipWS()
                 let body = try parseExpression()
                 skipWS()
-                guard remove(expecting: "}") else {
+                guard remove(prefix: "}") else {
                     throw err(Reason.expected("}"))
                 }
                 let end = position
-                return AnnotatedExpression(SourceRange(startIndex: start, endIndex: end), .function(parameters: parameters, body: body))
+                return AnnotatedExpression(SourceRange(startIndex: atomStart, endIndex: end), .function(parameters: parameters, body: body))
+            } else if p.isIdentifierStart {
+                let (range, name) = try annotate { try $0.parseIdentifier() }
+                return AnnotatedExpression(range, .variable(name))
             } else if p == "<" {
                return try parseTag()
             } else {
@@ -156,23 +160,23 @@ extension Slice where Index == String.Index, Element == Character {
     
     mutating func parseTag() throws -> AnnotatedExpression {
         let start = position
-        if remove(expecting: "<") {
+        if remove(prefix: "<") {
             skipWS()
             let name = try parseIdentifier()
-            guard remove(expecting: ">") else {
+            guard remove(prefix: ">") else {
                 throw err(Reason.expected(">"))
             }
             skipWS()
             var body: [AnnotatedExpression] = []
-            while !remove(expecting: "</\(name)>") {
+            while !remove(prefix: "</\(name)>") {
                 try body.append(parseTag())
             }
             return AnnotatedExpression(SourceRange(startIndex: start, endIndex: position), .tag(name: name, body: body))
-        } else if remove(expecting: "{") {
+        } else if remove(prefix: "{") {
             skipWS()
             let result = try parseExpression()
             skipWS()
-            guard remove(expecting: "}") else {
+            guard remove(prefix: "}") else {
                 throw err(Reason.expected("}"))
             }
             return result
@@ -257,7 +261,7 @@ public enum Reason: Hashable {
 
 extension String {
     public func parse() throws -> AnnotatedExpression {
-        var context = Context<String>(self)
+        var context = self[...]
         let result = try context.parseExpression()
         guard context.isEmpty else {
             throw context.err(.unexpectedRemainder(String(context)))

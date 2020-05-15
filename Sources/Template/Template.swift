@@ -36,10 +36,14 @@ public struct AnnotatedExpression: Equatable, Hashable {
     
 }
 
-public struct SimpleExpression: Hashable {
+public struct SimpleExpression: Hashable, CustomStringConvertible {
     let expression: Expression<SimpleExpression>
     public init(_ expression: Expression<SimpleExpression>) {
         self.expression = expression
+    }
+    
+    public var description: String {
+        return "\(expression)"
     }
 }
 

@@ -56,7 +56,7 @@ final class TemplateTests: XCTestCase {
     
     func testFunction() throws {
         input = """
-        { x, y in x }
+        func(x, y){ x }
         """
         try XCTAssertEqual(parsed(), .function(parameters: ["x", "y"], body: .variable("x")))
     }

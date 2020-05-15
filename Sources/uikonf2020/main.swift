@@ -13,7 +13,7 @@ func repl() {
             print("")
             let parsed = try input.parse()
             let result = try parsed.run()
-            print(result)
+            print(result.pretty)
         } catch let e as ParseError {
             let lineRange = input.lineRange(for: e.position..<e.position)
             print("")

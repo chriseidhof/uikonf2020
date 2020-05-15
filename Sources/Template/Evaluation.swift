@@ -14,6 +14,19 @@ public enum Value: Hashable {
     case html(String)
 }
 
+extension Value {
+    public var pretty: String {
+        switch self {
+        case .string(let s): return "\"\(s)\""
+        case .int(let i): return "\(i)"
+        case let .function(parameters: params, body: body):
+            let e = SimpleExpression(.function(parameters: params, body: body.simplify))
+            return "\(e)"
+        case .html(let str): return str
+        }
+    }
+}
+
 extension AnnotatedExpression {
     public func run() throws -> Value {
         try EvaluationContext().evaluate(self)
@@ -63,8 +76,9 @@ struct EvaluationContext {
             }
             return try nestedContext.evaluate(body)
         case .define(name: let name, value: let value, in: let body):
+            let v = try evaluate(value)
             var nestedContext = self
-            nestedContext.context[name] = try evaluate(value)
+            nestedContext.context[name] = v
             return try nestedContext.evaluate(body)
         case .tag(name: let name, body: let body):
             var result = "<\(name)>"
@@ -87,6 +101,9 @@ struct EvaluationContext {
 
 extension String {
     var htmlEscaped: String {
-        return replacingOccurrences(of: "<", with: "&lt;") // todo
+        return self
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
     }
 }

@@ -39,14 +39,14 @@ final class EvaluationTests: XCTestCase {
     
     func testVariable() throws {
         input = """
-        let const = { x, y in y } in const(1, 42)
+        let const = func(x,y){ y } in const(1, 42)
         """
         try XCTAssertEqual(evaluated(), .int(42))
     }
     
     func testTag() throws {
         input = """
-        let t = { name in <title>{ name }</title> } in
+        let t = func(name){ <title>{ name }</title> } in
         <head>{ t("My < Title") }</head>
         """
         try XCTAssertEqual(evaluated(), .html("<head><title>My &lt; Title</title></head>"))

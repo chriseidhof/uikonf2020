@@ -1,3 +1,3 @@
 # uikonf2020
 
-A description of this package.
+Sample code for my 2020 [UIKonf](https://uikonf.com/) talk.

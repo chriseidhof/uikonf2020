@@ -47,52 +47,52 @@ struct EvaluationContext {
     
     func evaluate(_ expression: Expression) throws -> Value {
         switch expression {
-        case .intLiteral(let value):
-            return .int(value)
-        case let .stringLiteral(value):
-            return .string(value)
-        case .variable(let v):
-            guard let value = context[v] else {
-                throw EvaluationError(reason: .variableMissing(name: v))
-            }
-            return value
-        case .function(parameters: let parameters, body: let body):
-            return .function(parameters: parameters, body: body)
-        case .let(name: let name, value: let value, in: let body):
-            let v = try evaluate(value)
-            var nestedContext = self
-            nestedContext.context[name] = v
-            return try evaluate(body)
-        case let .call(lhs, arguments: arguments):
-            let l = try evaluate(lhs)
-            guard case let .function(parameters, body) = l else {
-                throw EvaluationError(reason: .expectedFunction(got: l))
-            }
-            guard parameters.count == arguments.count else {
-                throw EvaluationError(reason: .wrongNumberOfArguments(expected: parameters.count, got: arguments.count))
-            }
-            let args = try arguments.map { try evaluate($0) }
-            var nestedContext = self
-            for (name, value) in zip(parameters, args) {
-                nestedContext.context[name] = value
-            }
-            return try nestedContext.evaluate(body)
-            
-        case .tag(name: let name, body: let body):
-            var result = "<\(name)>"
-            for b in body {
-                let value = try evaluate(b)
-                switch value {
-                case let .html(str):
-                    result.append(str)
-                case let .string(str):
-                    result.append(str.htmlEscaped)
-                default:
-                    throw EvaluationError(reason: .typeError("Expected html or string, but got \(value)"))
-                }
-            }
-            result.append("</\(name)>")
-            return .html(result)
+case .intLiteral(let value):
+    return .int(value)
+case let .stringLiteral(value):
+    return .string(value)
+case .variable(let v):
+    guard let value = context[v] else {
+        throw EvaluationError(reason: .variableMissing(name: v))
+    }
+    return value
+case .function(parameters: let parameters, body: let body):
+    return .function(parameters: parameters, body: body)
+case .let(name: let name, value: let value, in: let body):
+    let v = try evaluate(value)
+    var nestedContext = self
+    nestedContext.context[name] = v
+    return try nestedContext.evaluate(body)
+case let .call(lhs, arguments: arguments):
+    let l = try evaluate(lhs)
+    guard case let .function(parameters, body) = l else {
+        throw EvaluationError(reason: .expectedFunction(got: l))
+    }
+    guard parameters.count == arguments.count else {
+        throw EvaluationError(reason: .wrongNumberOfArguments(expected: parameters.count, got: arguments.count))
+    }
+    let args = try arguments.map { try evaluate($0) }
+    var nestedContext = self
+    for (name, value) in zip(parameters, args) {
+        nestedContext.context[name] = value
+    }
+    return try nestedContext.evaluate(body)
+    
+case .tag(name: let name, body: let body):
+    var result = "<\(name)>"
+    for b in body {
+        let value = try evaluate(b)
+        switch value {
+        case let .html(str):
+            result.append(str)
+        case let .string(str):
+            result.append(str.htmlEscaped)
+        default:
+            throw EvaluationError(reason: .typeError("Expected html or string, but got \(value)"))
+        }
+    }
+    result.append("</\(name)>")
+    return .html(result)
         }
     }
 }

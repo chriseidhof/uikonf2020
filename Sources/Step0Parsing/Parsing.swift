@@ -19,7 +19,7 @@ extension Substring {
         self.removeFirst(self.distance(from: position, to: p))
         return result
     }
-
+    
     mutating func remove<S>(prefix: S) -> Bool where S: Collection, S.Element == Element {
         guard starts(with: prefix) else { return false }
         removeFirst(prefix.count)
@@ -238,5 +238,4 @@ extension String {
         }
         return result
     }
-    
 }

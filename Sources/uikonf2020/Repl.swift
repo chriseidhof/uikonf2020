@@ -1,5 +1,6 @@
 import LineNoise
 import Template
+import SwiftUI
 
 struct PrettyError: Error {
     var string = ""
@@ -30,8 +31,11 @@ func repl() {
             ln.addHistory(input)
             print("")
             if input == "gui" {
-                run(view: TreeView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity))
+                run(view:
+                    TreeView()
+                        .frame(width: 1920/2, height: 1080/2)
+                        .background(Color.black)
+                )
             }
             let parsed = try input.parse()
             let result = try parsed.run().0.get()

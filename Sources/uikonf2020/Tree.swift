@@ -40,34 +40,34 @@ extension AnnotatedExpression {
         let state = trace[id] ?? .none
         switch self.expression {
         case let .variable(name):
-            let text = Text("var ").keyword + Text(name)
+            let text = Text(".variable").keyword + Text("(" + name + ")")
             return Tree(id: id, label: .init(text, state: state))
         case let .intLiteral(value):
-            let text = Text("int ").keyword + Text("\(value)")
+            let text = Text(".int").keyword + Text("(\(value))")
             return Tree(id: id, label: .init(text, state: state))
         case let .stringLiteral(str):
-            let text = Text("string ").keyword + Text("\"\(str)\"")
+            let text = Text(".string").keyword + Text("(\"\(str)\")")
             return Tree(id: id, label: .init(text, state: state))
         case let .function(parameters: parameters, body: body):
             let params = "(" + parameters.joined(separator: ", ") + ")"
-            let text = Text("func ").keyword + Text(params)
+            let text = Text(".function").keyword + Text(params)
             return Tree(id: id, label: .init(text, state: state), children: [
                 ("body", body.tree(trace: trace))
             ])
             
         case let .call(lhs, arguments:  arguments):
-            return Tree(id: id, label: .init(Text("call").keyword, state: state), children: [
+            return Tree(id: id, label: .init(Text(".call").keyword, state: state), children: [
                 ("lhs", lhs.tree(trace: trace))
             ] + arguments.map { arg in
                 (nil, arg.tree(trace: trace))
             })
         case let .let(name:  name, value:  value, in: body):
-            return Tree(id: id, label: .init(Text("let ").keyword + Text("\(name)"), state: state), children: [
+            return Tree(id: id, label: .init(Text(".let").keyword + Text("(\(name))"), state: state), children: [
                 ("value", value.tree(trace: trace)),
                 ("body", body.tree(trace: trace))
                 ])
         case let .tag(name: name, body: body):
-            return Tree(id: id, label: .init(Text("tag").keyword + Text(" \(name)"), state: state), children: body.map {
+            return Tree(id: id, label: .init(Text(".tag").keyword + Text("(\(name))"), state: state), children: body.map {
                 (nil, $0.tree(trace: trace))
         })
         }

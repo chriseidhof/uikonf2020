@@ -38,10 +38,10 @@ extension ExpressionNode {
                     .fill(color)
             )
             if showValue && value != nil {
-                value!.minimalPretty.background(Color.windowBackground)
+                value!.minimalPretty.background(Color.background)
             }
             if showValue && err != nil {
-                Text(err!).foregroundColor(.red).background(Color.windowBackground)
+                Text(err!).foregroundColor(.red).background(Color.background)
             }
         }
     }
@@ -117,8 +117,10 @@ struct TreeView: View {
             }
             Spacer()
             if trace != nil {
-                Stepper("Step \(step)/\(trace!.count)", value: $step, in: 0...trace!.count)
-                Toggle(isOn: $showValue, label: { Text("Show Values")})
+                HStack {
+                    Stepper("Step \(step)/\(trace!.count)", value: $step, in: 0...trace!.count)
+                    Toggle(isOn: $showValue, label: { Text("Show Values")})
+                }
             }
             
             TextField("Title", text: $s, onCommit: {
@@ -129,6 +131,6 @@ struct TreeView: View {
                 }
                 self.step = 0
             }).font(.system(.body, design: .monospaced))
-        }
+        }.padding(50)
     }
 }

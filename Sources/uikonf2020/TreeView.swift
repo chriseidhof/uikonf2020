@@ -10,7 +10,7 @@ import SwiftUI
 import Template
 
 extension Color {
-    static let windowBackground: Self = Color(NSColor.windowBackgroundColor)
+    static let background: Self = Color.black // (NSColor.windowBackgroundColor)
 }
 
 struct Collect<A>: PreferenceKey {
@@ -72,7 +72,7 @@ struct Diagram<A, V: View>: View {
                     Diagram(tree: child.1, strokeWidth: self.strokeWidth, node: self.node)
                         .overlay(Group {
                             if false && child.0 != nil {
-                                Text(child.0!).font(.caption).background(Color.windowBackground)
+                                Text(child.0!).font(.caption).background(Color.background)
                                     .offset(y: -20)
                             }
                         }, alignment: .top)

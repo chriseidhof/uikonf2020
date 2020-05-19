@@ -34,7 +34,6 @@ public struct AnnotatedExpression: Equatable, Hashable {
     public let id = UUID()
     public let range: SourceRange
     public let expression: Expression<AnnotatedExpression>
-    
 }
 
 // Useful for testing
